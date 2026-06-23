@@ -4,10 +4,21 @@
 
   let panelVisible = false;
   let isDragging = false;
+  let isResizing = false;
   let dragOffsetX = 0;
   let dragOffsetY = 0;
+  let resizeStartX = 0;
+  let resizeStartY = 0;
+  let resizeStartW = 0;
+  let resizeStartH = 0;
   let editingId = null;
   let deleteTargetId = null;
+
+  // 尺寸限制：最小为初始大小，最大为初始的2倍
+  const MIN_WIDTH = 200;
+  const MIN_HEIGHT = 200;
+  const MAX_WIDTH = 640;
+  const MAX_HEIGHT = 800;
 
   // ==================== 创建面板 DOM ====================
   function createPanel() {
@@ -26,6 +37,7 @@
       <div class="panel-footer">
         <button class="add-site-btn" id="site-nav-add-btn">+ 添加网站</button>
       </div>
+      <div class="resize-handle" id="site-nav-resize-handle"></div>
     `;
     document.body.appendChild(panel);
 
@@ -73,11 +85,15 @@
   function bindEvents() {
     const panel = document.getElementById("site-nav-panel");
     const header = panel.querySelector(".panel-header");
+    const resizeHandle = document.getElementById("site-nav-resize-handle");
 
     // 拖动功能
     header.addEventListener("mousedown", startDrag);
-    document.addEventListener("mousemove", onDrag);
-    document.addEventListener("mouseup", stopDrag);
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+
+    // 缩放功能
+    resizeHandle.addEventListener("mousedown", startResize);
 
     // 关闭/最小化
     document.getElementById("site-nav-close").addEventListener("click", togglePanel);
@@ -119,28 +135,64 @@
     e.preventDefault();
   }
 
-  function onDrag(e) {
-    if (!isDragging) return;
+  // ==================== 缩放功能 ====================
+  function startResize(e) {
+    isResizing = true;
     const panel = document.getElementById("site-nav-panel");
-    let newX = e.clientX - dragOffsetX;
-    let newY = e.clientY - dragOffsetY;
-
-    // 边界限制
-    const maxX = window.innerWidth - panel.offsetWidth;
-    const maxY = window.innerHeight - panel.offsetHeight;
-    newX = Math.max(0, Math.min(newX, maxX));
-    newY = Math.max(0, Math.min(newY, maxY));
-
-    panel.style.left = newX + "px";
-    panel.style.top = newY + "px";
-    panel.style.right = "auto";
+    resizeStartX = e.clientX;
+    resizeStartY = e.clientY;
+    resizeStartW = panel.offsetWidth;
+    resizeStartH = panel.offsetHeight;
+    panel.classList.add("resizing");
+    e.preventDefault();
+    e.stopPropagation();
   }
 
-  function stopDrag() {
+  // ==================== 统一鼠标移动处理 ====================
+  function onMouseMove(e) {
+    if (isDragging) {
+      const panel = document.getElementById("site-nav-panel");
+      let newX = e.clientX - dragOffsetX;
+      let newY = e.clientY - dragOffsetY;
+
+      // 边界限制
+      const maxX = window.innerWidth - panel.offsetWidth;
+      const maxY = window.innerHeight - panel.offsetHeight;
+      newX = Math.max(0, Math.min(newX, maxX));
+      newY = Math.max(0, Math.min(newY, maxY));
+
+      panel.style.left = newX + "px";
+      panel.style.top = newY + "px";
+      panel.style.right = "auto";
+    }
+
+    if (isResizing) {
+      const panel = document.getElementById("site-nav-panel");
+      const deltaX = e.clientX - resizeStartX;
+      const deltaY = e.clientY - resizeStartY;
+
+      let newW = resizeStartW + deltaX;
+      let newH = resizeStartH + deltaY;
+
+      // 限制尺寸范围
+      newW = Math.max(MIN_WIDTH, Math.min(newW, MAX_WIDTH));
+      newH = Math.max(MIN_HEIGHT, Math.min(newH, MAX_HEIGHT));
+
+      panel.style.width = newW + "px";
+      panel.style.height = newH + "px";
+    }
+  }
+
+  function onMouseUp() {
     if (isDragging) {
       isDragging = false;
       const panel = document.getElementById("site-nav-panel");
       panel.classList.remove("dragging");
+    }
+    if (isResizing) {
+      isResizing = false;
+      const panel = document.getElementById("site-nav-panel");
+      panel.classList.remove("resizing");
     }
   }
 
@@ -179,17 +231,14 @@
       .map(
         (site) => `
       <div class="site-item" data-id="${site.id}" data-url="${escapeHtml(site.url)}">
-        <div class="site-icon">
-          <img src="${getFaviconUrl(site.url)}" alt="" onerror="this.style.display='none';this.parentNode.textContent='${getInitial(site.name)}'" />
-        </div>
-        <div class="site-info">
-          <div class="site-name">${escapeHtml(site.name)}</div>
-          <div class="site-url">${escapeHtml(site.url)}</div>
-        </div>
         <div class="site-actions">
           <button class="edit-btn" data-id="${site.id}" title="编辑">&#x270E;</button>
           <button class="delete-btn" data-id="${site.id}" title="删除">&#x1F5D1;</button>
         </div>
+        <div class="site-icon">
+          <img src="${getFaviconUrl(site.url)}" alt="" onerror="this.style.display='none';this.parentNode.textContent='${getInitial(site.name)}'" />
+        </div>
+        <div class="site-name">${escapeHtml(site.name)}</div>
       </div>
     `
       )

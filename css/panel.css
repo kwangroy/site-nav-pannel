@@ -4,7 +4,11 @@
   top: 100px;
   right: 30px;
   width: 320px;
-  max-height: 500px;
+  height: 400px;
+  min-width: 200px;
+  min-height: 200px;
+  max-width: 640px;
+  max-height: 800px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -24,6 +28,10 @@
 #site-nav-panel.dragging {
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
   opacity: 0.95;
+}
+
+#site-nav-panel.resizing {
+  transition: none;
 }
 
 /* 标题栏 - 拖动区域 */
@@ -72,8 +80,11 @@
 #site-nav-panel .panel-body {
   flex: 1;
   overflow-y: auto;
-  padding: 12px;
-  max-height: 360px;
+  padding: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 12px;
 }
 
 #site-nav-panel .panel-body::-webkit-scrollbar {
@@ -85,69 +96,60 @@
   border-radius: 2px;
 }
 
-/* 网站项 */
+/* 网站项 - 横向排列，上图标下名称 */
 #site-nav-panel .site-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 10px 12px;
-  border-radius: 8px;
+  width: 72px;
+  padding: 10px 4px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
-  margin-bottom: 4px;
   position: relative;
 }
 
 #site-nav-panel .site-item:hover {
   background: #f3f4f6;
-  transform: translateX(2px);
+  transform: translateY(-2px);
 }
 
 #site-nav-panel .site-item .site-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: #e5e7eb;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #f3f4f6;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
   flex-shrink: 0;
   overflow: hidden;
+  margin-bottom: 6px;
 }
 
 #site-nav-panel .site-item .site-icon img {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
-#site-nav-panel .site-item .site-info {
-  flex: 1;
-  min-width: 0;
-}
-
-#site-nav-panel .site-item .site-info .site-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: #1f2937;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#site-nav-panel .site-item .site-info .site-url {
+#site-nav-panel .site-item .site-name {
   font-size: 11px;
-  color: #9ca3af;
+  font-weight: 500;
+  color: #374151;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: 2px;
+  max-width: 100%;
+  text-align: center;
 }
 
 /* 网站项操作按钮 */
 #site-nav-panel .site-item .site-actions {
   display: none;
-  gap: 4px;
-  flex-shrink: 0;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  gap: 2px;
 }
 
 #site-nav-panel .site-item:hover .site-actions {
@@ -155,16 +157,16 @@
 }
 
 #site-nav-panel .site-item .site-actions button {
-  background: none;
-  border: none;
-  width: 24px;
-  height: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+  width: 18px;
+  height: 18px;
   border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 10px;
   color: #6b7280;
   transition: background 0.15s, color 0.15s;
 }
@@ -184,6 +186,7 @@
   text-align: center;
   padding: 32px 16px;
   color: #9ca3af;
+  width: 100%;
 }
 
 #site-nav-panel .empty-state .empty-icon {
@@ -222,6 +225,32 @@
 
 #site-nav-panel .add-site-btn:active {
   transform: translateY(0);
+}
+
+/* 缩放手柄 */
+#site-nav-panel .resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  z-index: 10;
+}
+
+#site-nav-panel .resize-handle::before {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #c0c0c0;
+  border-bottom: 2px solid #c0c0c0;
+}
+
+#site-nav-panel .resize-handle:hover::before {
+  border-color: #667eea;
 }
 
 /* 模态框 - 添加/编辑网站 */
