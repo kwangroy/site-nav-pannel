@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "网站导航控制盘",
+  "version": "1.0.0",
+  "description": "可拖动的浮窗式常用网站导航插件，支持增删改查",
+  "permissions": ["storage", "activeTab"],
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "网站导航控制盘"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content.js"],
+      "css": ["css/panel.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
