@@ -2,6 +2,9 @@
 (function () {
   "use strict";
 
+  // 防止重复注入
+  if (document.getElementById("site-nav-panel")) return;
+
   let panelVisible = false;
   let isDragging = false;
   let isResizing = false;
